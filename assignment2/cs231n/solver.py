@@ -142,6 +142,7 @@ class Solver(object):
         # name with the actual function
         if not hasattr(optim, self.update_rule):
             raise ValueError('Invalid update_rule "%s"' % self.update_rule)
+            
         self.update_rule = getattr(optim, self.update_rule)
 
         self._reset()
@@ -259,8 +260,11 @@ class Solver(object):
         Run optimization to train the model.
         """
         num_train = self.X_train.shape[0]
+        print("num_train",num_train)
         iterations_per_epoch = max(num_train // self.batch_size, 1)
+        print("iterations_per_epoch",iterations_per_epoch)
         num_iterations = self.num_epochs * iterations_per_epoch
+        print("num_iterations",num_iterations)
 
         for t in range(num_iterations):
             self._step()
