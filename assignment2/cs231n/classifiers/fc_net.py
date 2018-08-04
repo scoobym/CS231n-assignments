@@ -256,12 +256,14 @@ class FullyConnectedNet(object):
         ############################################################################
         layer_input = X
         ar_cache = {}
+        do_cache = {}
         for lay in range(self.num_layers-1):
             if self.normalization == "batchnorm":
                 layer_input,ar_cache[lay+1] = affine_bn_relu_forward(layer_input, self.params['W%d'%(lay+1)], self.params['b%d'%(lay+1)],self.params['gamma%d'%(lay+1)],self.params['beta%d'%(lay+1)],self.bn_params[lay])
             else:    
                 layer_input,ar_cache[lay+1] = affine_relu_forward(layer_input, self.params['W%d'%(lay+1)], self.params['b%d'%(lay+1)])
-            
+            if self.use_dropout:
+                layer_input, do_cache[lay+1] = dropout_forward(layer_input, self.dropout_param)
         scores,ar_cache[self.num_layers] = affine_forward(layer_input, self.params['W%d'%(self.num_layers)], self.params['b%d'%(self.num_layers)])
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -294,6 +296,8 @@ class FullyConnectedNet(object):
         loss += 0.5*self.reg*(np.sum(self.params['W%d'%(self.num_layers)]**2))
         
         for lay in range(self.num_layers-1):
+            if self.use_dropout:
+                dhidden = dropout_backward(dhidden, do_cache[self.num_layers-lay-1])
             if self.normalization == "batchnorm":
                 dhidden, grads['W%d'%(self.num_layers-lay-1)], grads['b%d'%(self.num_layers-lay-1)], grads['gamma%d'%(self.num_layers-lay-1)], grads['beta%d'%(self.num_layers-lay-1)] = affine_bn_relu_backward(dhidden,ar_cache[self.num_layers-lay-1])  
             else:
